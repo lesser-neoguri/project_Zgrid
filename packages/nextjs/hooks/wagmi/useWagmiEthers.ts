@@ -3,15 +3,24 @@
 import { useEffect, useMemo, useRef } from "react";
 import { ethers } from "ethers";
 import { useAccount, useWalletClient } from "wagmi";
+import scaffoldConfig from "~~/scaffold.config";
 
 export const useWagmiEthers = (initialMockChains?: Readonly<Record<number, string>>) => {
   const { address, isConnected, chain } = useAccount();
   const { data: walletClient } = useWalletClient();
 
-  const chainId = chain?.id ?? walletClient?.chain?.id;
+  const defaultChainId = scaffoldConfig.targetNetworks[0]?.id;
+  const walletChainId = chain?.id ?? walletClient?.chain?.id;
+  const viewChainId = isConnected ? walletChainId ?? defaultChainId : defaultChainId;
   const accounts = address ? [address] : undefined;
 
   const ethersProvider = useMemo(() => {
+    // 우선 표준 지갑 주입 객체를 직접 사용해 ethers의 에러 정규화를 보장
+    if (typeof window !== "undefined" && (window as any).ethereum) {
+      return new ethers.BrowserProvider((window as any).ethereum as ethers.Eip1193Provider);
+    }
+
+    // fallback: wagmi walletClient를 EIP-1193 어댑터로 감싸서 사용
     if (!walletClient) return undefined;
 
     const eip1193Provider = {
@@ -29,16 +38,35 @@ export const useWagmiEthers = (initialMockChains?: Readonly<Record<number, strin
     return new ethers.BrowserProvider(eip1193Provider);
   }, [walletClient]);
 
-  const ethersReadonlyProvider = useMemo(() => {
-    if (!ethersProvider) return undefined;
+  const readonlyRpcUrl = useMemo(() => {
+    const preferredChainId = viewChainId;
+    const mockUrl = initialMockChains?.[preferredChainId || 0];
+    if (mockUrl) return mockUrl;
 
-    const rpcUrl = initialMockChains?.[chainId || 0];
-    if (rpcUrl) {
-      return new ethers.JsonRpcProvider(rpcUrl);
+    const overrideUrl = scaffoldConfig.rpcOverrides?.[preferredChainId as number];
+    if (overrideUrl) return overrideUrl;
+
+    if (preferredChainId === 31337) {
+      const host = typeof window !== "undefined" ? window.location.hostname : "127.0.0.1";
+      return `http://${host}:8545`;
+    }
+
+    if (preferredChainId === 11155111) {
+      return scaffoldConfig.alchemyApiKey
+        ? `https://eth-sepolia.g.alchemy.com/v2/${scaffoldConfig.alchemyApiKey}`
+        : "https://rpc.sepolia.org";
+    }
+
+    return undefined;
+  }, [initialMockChains, viewChainId]);
+
+  const ethersReadonlyProvider = useMemo(() => {
+    if (readonlyRpcUrl) {
+      return new ethers.JsonRpcProvider(readonlyRpcUrl);
     }
 
     return ethersProvider;
-  }, [ethersProvider, initialMockChains, chainId]);
+  }, [readonlyRpcUrl, ethersProvider]);
 
   const ethersSigner = useMemo(() => {
     if (!ethersProvider || !address) return undefined;
@@ -47,18 +75,18 @@ export const useWagmiEthers = (initialMockChains?: Readonly<Record<number, strin
 
   // Stable refs consumers can reuse
   const ropRef = useRef<typeof ethersReadonlyProvider>(ethersReadonlyProvider);
-  const chainIdRef = useRef<number | undefined>(chainId);
+  const chainIdRef = useRef<number | undefined>(viewChainId);
 
   useEffect(() => {
     ropRef.current = ethersReadonlyProvider;
   }, [ethersReadonlyProvider]);
 
   useEffect(() => {
-    chainIdRef.current = chainId;
-  }, [chainId]);
+    chainIdRef.current = viewChainId;
+  }, [viewChainId]);
 
   return {
-    chainId,
+    chainId: viewChainId,
     accounts,
     isConnected,
     ethersProvider,

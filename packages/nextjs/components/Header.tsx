@@ -14,7 +14,7 @@ export const Header = () => {
   });
 
   return (
-    <div className="sticky lg:static top-0 navbar min-h-0 shrink-0 justify-between z-20 px-0 sm:px-2">
+    <div className="sticky lg:static top-0 navbar min-h-0 shrink-0 justify-between z-20 px-0 sm:px-2 bg-transparent">
       <div className="navbar-end grow mr-4">
         <RainbowKitCustomConnectButton />
       </div>
