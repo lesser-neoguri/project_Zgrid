@@ -62,15 +62,34 @@ export const useWagmiEthers = (initialMockChains?: Readonly<Record<number, strin
 
   const ethersReadonlyProvider = useMemo(() => {
     if (readonlyRpcUrl) {
-      return new ethers.JsonRpcProvider(readonlyRpcUrl);
+      try {
+        // 네트워크 정보를 명시적으로 제공하여 감지 실패 문제 해결
+        const network = viewChainId === 31337 
+          ? { name: "hardhat", chainId: 31337 }
+          : viewChainId === 11155111
+          ? { name: "sepolia", chainId: 11155111 }
+          : undefined;
+        
+        return network 
+          ? new ethers.JsonRpcProvider(readonlyRpcUrl, network)
+          : new ethers.JsonRpcProvider(readonlyRpcUrl);
+      } catch (e) {
+        console.error("Failed to create JsonRpcProvider:", e);
+        return ethersProvider;
+      }
     }
 
     return ethersProvider;
-  }, [readonlyRpcUrl, ethersProvider]);
+  }, [readonlyRpcUrl, ethersProvider, viewChainId]);
 
   const ethersSigner = useMemo(() => {
     if (!ethersProvider || !address) return undefined;
-    return new ethers.JsonRpcSigner(ethersProvider, address);
+    try {
+      return ethersProvider.getSigner(address);
+    } catch (e) {
+      console.error("Failed to create ethers signer:", e);
+      return undefined;
+    }
   }, [ethersProvider, address]);
 
   // Stable refs consumers can reuse

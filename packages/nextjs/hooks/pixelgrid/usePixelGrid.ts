@@ -18,6 +18,21 @@ export function usePixelGrid() {
   const { chainId, ethersReadonlyProvider, ethersSigner, isConnected, accounts } = useWagmiEthers();
   const allowedChainId = typeof chainId === "number" ? (chainId as AllowedChainIds) : undefined;
   const { data: pixelGrid } = useDeployedContractInfo({ contractName: "PixelGrid", chainId: allowedChainId });
+  
+  // 디버깅을 위한 로그
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      console.log("PixelGrid Hook Debug:", {
+        chainId,
+        allowedChainId,
+        hasContract: Boolean(pixelGrid?.address),
+        contractAddress: pixelGrid?.address,
+        isConnected,
+        hasProvider: Boolean(ethersReadonlyProvider),
+        hasSigner: Boolean(ethersSigner),
+      });
+    }
+  }, [chainId, allowedChainId, pixelGrid, isConnected, ethersReadonlyProvider, ethersSigner]);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [message, setMessage] = useState("");
@@ -168,19 +183,32 @@ export function usePixelGrid() {
 
   const mint = useCallback(
     async (tokenId: number) => {
-      if (!contractWrite) return;
+      if (!isConnected) {
+        setMessage("지갑을 연결해주세요");
+        return;
+      }
+      if (!hasContract) {
+        setMessage("컨트랙트를 찾을 수 없습니다. 올바른 네트워크에 연결되어 있는지 확인해주세요.");
+        return;
+      }
+      if (!contractWrite) {
+        setMessage("지갑이 연결되지 않았거나 네트워크를 감지할 수 없습니다. 지갑을 확인해주세요.");
+        return;
+      }
       setMessage(`Mint ${tokenId}...`);
       try {
         const tx = await contractWrite.mintPixel(tokenId, "", { gasLimit: 300000n });
+        setMessage(`트랜잭션 전송됨: ${tx.hash}...`);
         await tx.wait();
         setMessage(`Minted #${tokenId}`);
         await refresh();
       } catch (e: any) {
         const parsed = allowedChainId ? getParsedErrorWithAllAbis(e, allowedChainId) : (e?.message ?? String(e));
-        setMessage(parsed);
+        setMessage(`Mint 실패: ${parsed}`);
+        console.error("Mint error:", e);
       }
     },
-    [contractWrite, refresh, allowedChainId],
+    [contractWrite, refresh, allowedChainId, isConnected, hasContract],
   );
 
   const setPrice = useCallback(
