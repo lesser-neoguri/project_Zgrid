@@ -10,7 +10,7 @@ interface PriceHistoryChartProps {
   pixelId: number;
 }
 
-export const PriceHistoryChart = ({ history, pixelId }: PriceHistoryChartProps) => {
+export const PriceHistoryChart = ({ history }: PriceHistoryChartProps) => {
   const chartData = useMemo(() => {
     // 거래(sale)만 필터링하여 시간순으로 정렬
     const sales = history.filter(e => e.eventType === "sale");

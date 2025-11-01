@@ -25,7 +25,7 @@ export default function CanvasPage() {
   const UNIT_TO_WEI = 10n ** 16n;
   const unitsToWei = (units: bigint) => units * UNIT_TO_WEI;
   const weiToUnits = (wei: bigint) => wei / UNIT_TO_WEI;
-  const { pixels, isRefreshing, refresh, mint, setPrice, buy, setColor, account, message } = usePixelGrid() as any;
+  const { pixels, isRefreshing, mint, setPrice, buy, setColor, account } = usePixelGrid() as any;
   const { getPriceHistory, saleEventCount } = usePriceHistory();
   const [priceInput, setPriceInput] = useState<Record<number, string>>({});
   const [colorInput, setColorInput] = useState<Record<number, string>>({});
@@ -100,7 +100,6 @@ export default function CanvasPage() {
 
   const gridWidth = 192; // 16:9 비율
   const gridHeight = 108;
-  const gridSize = gridWidth; // 기존 코드 호환성을 위해
   const baseCellSize = useMemo(() => {
     const paddingHorizontal = 160;
     const paddingVertical = 220;

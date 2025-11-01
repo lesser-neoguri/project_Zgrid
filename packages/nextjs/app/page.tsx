@@ -13,7 +13,6 @@ export default function Home() {
   const gridWidth = 192;
   const gridHeight = 108;
   const thumbnailCellSize = 4; // 미리보기용 셀 크기
-  const gap = 0;
 
   // 캔버스 이미지 생성 및 미리보기 변환 (점진적 업데이트)
   useEffect(() => {
@@ -151,7 +150,7 @@ export default function Home() {
     let minted = 0;
     let forSale = 0;
     const participantSet = new Set<string>();
-    let earliestDate: Date | null = null;
+    const earliestDate: Date | null = null;
     
     for (const pixel of Object.values(pixels)) {
       if (pixel.exists) {
