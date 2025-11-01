@@ -69,7 +69,7 @@ export function usePriceHistory() {
     setIsLoading(true);
     try {
       const currentBlock = await ethersReadonlyProvider!.getBlockNumber();
-      const fromBlock = currentBlock > 10000n ? currentBlock - 10000n : 0n; // 최근 10,000 블록 (약 1-2일치, 체인에 따라 다름)
+      const fromBlock = currentBlock > 10000 ? currentBlock - 10000 : 0; // 최근 10,000 블록 (약 1-2일치, 체인에 따라 다름)
 
       // PixelSale 이벤트만 조회 (거래가 이루어진 경우만 기록)
       const saleFilter = contractRead.filters.PixelSale();
@@ -80,8 +80,8 @@ export function usePriceHistory() {
         const block = await event.getBlock();
         const timestamp = Number(block.timestamp) * 1000;
 
-        if (event.eventName === "PixelSale") {
-          const [from, to, tokenId, price] = event.args as any;
+        if ("eventName" in event && event.eventName === "PixelSale") {
+          const [from, to, tokenId, price] = (event as any).args as any;
           await savePriceChange({
             pixelId: Number(tokenId),
             timestamp,

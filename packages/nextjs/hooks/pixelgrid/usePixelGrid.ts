@@ -51,9 +51,12 @@ export function usePixelGrid() {
           // BigInt 복원
           const restored: Record<number, PixelState> = {};
           for (const [idStr, pixel] of Object.entries(cachedPixels as any)) {
+            const pixelData = pixel as any;
             restored[Number(idStr)] = {
-              ...pixel,
-              priceWei: BigInt(pixel.priceWei),
+              exists: pixelData.exists ?? false,
+              owner: pixelData.owner,
+              priceWei: BigInt(pixelData.priceWei),
+              colorRgb: pixelData.colorRgb ?? 0,
             };
           }
           setPixels(restored);
