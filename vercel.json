@@ -1,7 +1,6 @@
 {
   "installCommand": "pnpm install --no-frozen-lockfile",
   "buildCommand": "pnpm --filter ./packages/nextjs build",
-  "framework": "nextjs",
-  "rootDirectory": "packages/nextjs"
+  "framework": "nextjs"
 }
 
