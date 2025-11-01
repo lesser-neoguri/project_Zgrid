@@ -13,13 +13,13 @@ import { BlockieAvatar } from "~~/components/helper";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 
 const InfiniteScrollBanner = () => {
+  const scrollText = "PIXEL NFT • ".repeat(10); // 충분한 텍스트 복제
+  
   return (
     <div className="relative w-full h-6 bg-black overflow-hidden">
-      <div className="absolute whitespace-nowrap animate-scroll">
-        <span className="inline-block mr-8 text-white text-xs">PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT •</span>
-      </div>
-      <div className="absolute whitespace-nowrap animate-scroll-delayed">
-        <span className="inline-block mr-8 text-white text-xs">PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT • PIXEL NFT •</span>
+      <div className="flex animate-scroll whitespace-nowrap">
+        <span className="inline-block text-white text-xs">{scrollText}</span>
+        <span className="inline-block text-white text-xs">{scrollText}</span>
       </div>
     </div>
   );

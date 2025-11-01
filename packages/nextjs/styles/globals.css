@@ -137,9 +137,11 @@
 
 .animate-scroll {
   animation: scroll 30s linear infinite;
+  will-change: transform;
 }
 
 .animate-scroll-delayed {
   animation: scroll 30s linear infinite;
   animation-delay: -15s;
+  will-change: transform;
 }

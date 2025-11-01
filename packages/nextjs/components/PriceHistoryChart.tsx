@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { formatEther } from "viem";
 import type { PriceChangeEvent } from "~~/utils/priceHistory";
 
@@ -12,8 +12,9 @@ interface PriceHistoryChartProps {
 
 export const PriceHistoryChart = ({ history, pixelId }: PriceHistoryChartProps) => {
   const chartData = useMemo(() => {
-    // 시간순으로 정렬
-    const sorted = [...history].sort((a, b) => a.timestamp - b.timestamp);
+    // 거래(sale)만 필터링하여 시간순으로 정렬
+    const sales = history.filter(e => e.eventType === "sale");
+    const sorted = [...sales].sort((a, b) => a.timestamp - b.timestamp);
 
     return sorted.map((event) => ({
       time: new Date(event.timestamp).toLocaleString("en-US", {
@@ -24,7 +25,6 @@ export const PriceHistoryChart = ({ history, pixelId }: PriceHistoryChartProps) 
       }),
       timestamp: event.timestamp,
       price: Number(formatEther(event.priceWei)),
-      type: event.eventType === "sale" ? "Sale" : event.eventType === "listed" ? "Listed" : "Removed",
       block: event.blockNumber,
     }));
   }, [history]);
@@ -33,7 +33,7 @@ export const PriceHistoryChart = ({ history, pixelId }: PriceHistoryChartProps) 
     return (
       <div className="w-full">
         <h3 className="text-base font-semibold mb-2 text-white">Price History</h3>
-        <div className="flex items-center justify-center h-64 bg-gray-900 rounded">
+        <div className="flex items-center justify-center h-64 bg-black rounded">
           <p className="text-gray-400">No transactions</p>
         </div>
       </div>
@@ -49,7 +49,7 @@ export const PriceHistoryChart = ({ history, pixelId }: PriceHistoryChartProps) 
             data={chartData}
             margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
             <XAxis
               dataKey="time"
               tick={{ fontSize: 10, fill: '#9CA3AF' }}
@@ -67,24 +67,27 @@ export const PriceHistoryChart = ({ history, pixelId }: PriceHistoryChartProps) 
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
                   return (
-                    <div className="bg-white border border-gray-300 rounded p-2 shadow-lg">
-                      <p className="font-semibold text-xs">{data.time}</p>
-                      <p className="text-xs">Price: {data.price.toFixed(4)} ETH</p>
+                    <div className="bg-gray-900 border border-gray-700 rounded p-2 shadow-lg">
+                      <p className="font-semibold text-xs text-white">{data.time}</p>
+                      <p className="text-xs text-gray-300">Price: {data.price.toFixed(4)} ETH</p>
                     </div>
                   );
                 }
                 return null;
               }}
             />
-            <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
             <Line
               type="linear"
               dataKey="price"
               stroke="#FFD208"
-              strokeWidth={2}
-              dot={{ r: 4, fill: '#FFD208' }}
-              activeDot={{ r: 6, fill: '#FFD208' }}
+              strokeWidth={1}
+              dot={false}
+              activeDot={false}
               connectNulls={false}
+              isAnimationActive={false}
+              style={{
+                filter: "drop-shadow(0 0 2px rgba(255, 210, 8, 0.8)) drop-shadow(0 0 4px rgba(255, 210, 8, 0.4))",
+              }}
             />
           </LineChart>
         </ResponsiveContainer>
